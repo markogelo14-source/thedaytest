@@ -1,4 +1,4 @@
-import { Prisma, RSVPStatus } from "@prisma/client";
+import { RSVPStatus } from "@prisma/client";
 import { format, parseISO } from "date-fns";
 import { hr } from "date-fns/locale";
 
@@ -25,29 +25,27 @@ import type {
 
 const eventInclude = {
   guestGroups: {
-    orderBy: [{ createdAt: "asc" }],
+    orderBy: [{ createdAt: "asc" as const }],
     include: {
       attendees: {
-        orderBy: [{ name: "asc" }],
+        orderBy: [{ name: "asc" as const }],
       },
     },
   },
   tables: {
-    orderBy: [{ createdAt: "asc" }],
+    orderBy: [{ createdAt: "asc" as const }],
     include: {
       attendees: {
-        orderBy: [{ name: "asc" }],
+        orderBy: [{ name: "asc" as const }],
         include: {
           guestGroup: true,
         },
       },
     },
   },
-} satisfies Prisma.EventInclude;
+};
 
-type EventRecord = Prisma.EventGetPayload<{
-  include: typeof eventInclude;
-}>;
+type EventRecord = Awaited<ReturnType<typeof getPrimaryEventRecord>>;
 
 function toIsoDate(date: Date) {
   return format(date, "yyyy-MM-dd");
