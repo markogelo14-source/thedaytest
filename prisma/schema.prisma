@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Event {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  name        String
+  venue       String
+  date        DateTime
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  guestGroups GuestGroup[]
+  tables      Table[]
+}
+
+model GuestGroup {
+  id         String      @id @default(cuid())
+  eventId    String
+  name       String
+  maxPeople  Int
+  contact    String?
+  status     RSVPStatus  @default(pending)
+  shareToken String      @unique
+  note       String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  attendees  Attendee[]
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Attendee {
+  id           String     @id @default(cuid())
+  guestGroupId String
+  tableId      String?
+  name         String
+  isChild      Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  guestGroup   GuestGroup @relation(fields: [guestGroupId], references: [id], onDelete: Cascade)
+  table        Table?     @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  @@index([guestGroupId])
+  @@index([tableId])
+}
+
+model Table {
+  id        String     @id @default(cuid())
+  eventId   String
+  name      String
+  seats     Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  attendees Attendee[]
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+enum RSVPStatus {
+  confirmed
+  pending
+  declined
+}
